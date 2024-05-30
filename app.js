@@ -20,7 +20,7 @@ const MongoStore = require('connect-mongo')(session);
 const userRoutes = require('./routes/users');
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
-const dbUrl = 'mongodb://localhost:27017/yelpcamp';
+const dbUrl = process.env.DB_URL;
 
 mongoose.connect(dbUrl)
 .then(() => {
@@ -100,6 +100,6 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render('error', { err })
 })
 
-app.listen(3000, () => {
-    console.log('Serving on port 3000')
+app.listen(4000, () => {
+    console.log('Serving on port 4000')
 })
