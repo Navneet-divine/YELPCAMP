@@ -3,7 +3,6 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 
-
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -15,13 +14,15 @@ const methodOverride = require('method-override');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
+const MongoStore = require('connect-mongo')(session);
 
 
 const userRoutes = require('./routes/users');
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
+const dbUrl = 'mongodb://localhost:27017/yelpcamp';
 
-mongoose.connect('mongodb://localhost:27017/yelpcamp')
+mongoose.connect(dbUrl)
 .then(() => {
     console.log("CONNECTION OPEN")
 }).catch(() => {
@@ -39,12 +40,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')))
 
+const store = new MongoStore({
+    mongooseConnection: mongoose.connection,
+    secret: 'thisshouldbeabettersecret!',
+    touchAfter: 24 * 60 * 60, 
+  });
+
+store.on("error",function(e) {
+    console.log("SESSION STORE ERROR", e)
+})
+
 const sessionConfig = {
+    store,
+    name:'session',
     secret: 'thisshouldbeabettersecret!',
     resave: false,
     saveUninitialized: true,
     cookie: {
         httpOnly: true,
+        /* secure:true, */
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
@@ -68,7 +82,6 @@ app.use((req, res, next) => {
     next();
 })
 
-
 app.use('/', userRoutes);
 app.use('/campgrounds', campgroundRoutes)
 app.use('/campgrounds/:id/reviews', reviewRoutes)
@@ -77,7 +90,6 @@ app.use('/campgrounds/:id/reviews', reviewRoutes)
 app.get('/', (req, res) => {
     res.render('home')
 });
-
 
 app.all('*', (req, res, next) => {
     next(new ExpressError('Page Not Found', 404))
