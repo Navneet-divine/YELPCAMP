@@ -27,8 +27,8 @@ const dbUrl = 'mongodb://127.0.0.1:27017/yelpcamp';
 mongoose.connect(dbUrl)
 .then(() => {
     console.log("CONNECTION OPEN")
-}).catch(() => {
-    console.log("CONNECTION ERROR!!")
+}).catch((e) => {
+    console.log("CONNECTION ERROR!!",e)
 })
 
 
